@@ -1,4 +1,4 @@
-name: NFC Purchase Tracker APK
+name: Tapsum APK
 
 on:
   push:
@@ -26,5 +26,5 @@ jobs:
         run: ./gradlew --no-daemon assembleRelease
       - uses: actions/upload-artifact@v4
         with:
-          name: moi-pokupky-apk
+          name: tapsum-apk
           path: nfc-purchase-tracker/app/build/outputs/apk/release/*.apk
