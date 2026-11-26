@@ -1,4 +1,6 @@
-# Мої покупки — облік NFC-оплат для Samsung (OneUI 9)
+# Tapsum — облік NFC-оплат для Samsung (OneUI 9)
+
+<img src="docs/logo.svg" width="96" alt="Tapsum">
 
 Android-додаток, який автоматично записує покупки, оплачені телефоном або
 Galaxy Watch через NFC, і рахує суми за день / тиждень / місяць.
