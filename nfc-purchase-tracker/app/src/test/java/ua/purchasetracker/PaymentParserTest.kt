@@ -68,4 +68,22 @@ class PaymentParserTest {
         assertEquals("1 234,56 ₴", PaymentParser.format(123456, "UAH"))
         assertEquals("0,05 $", PaymentParser.format(5, "USD"))
     }
+
+    @Test fun cardAndSourceType() {
+        val bank = PaymentParser.parse(privat, null, "Списання 89.00 UAH Картка 5168**1234. Novus")!!
+        assertEquals("1234", bank.card)
+        assertEquals(SourceType.CARD, bank.sourceType)
+        val wallet = PaymentParser.parse(wallet, "Samsung Wallet", "Оплата ₴45,00 картка 7788")!!
+        assertEquals("7788", wallet.card)
+        assertEquals(SourceType.NFC, wallet.sourceType)
+        val online = PaymentParser.parse(mono, "Rozetka", "Онлайн-покупка 1 299.00₴")!!
+        assertEquals(SourceType.ONLINE, online.sourceType)
+    }
+
+    @Test fun polishBank() {
+        val p = PaymentParser.parse("pl.pkobp.iko", "IKO", "Płatność kartą 45,99 PLN Biedronka. Saldo: 1 200,00 PLN")!!
+        assertEquals(4599L, p.amountMinor)
+        assertEquals("PLN", p.currency)
+        assertNull(PaymentParser.parse("pl.mbank", "mBank", "Wpływ 500,00 PLN"))
+    }
 }

@@ -8,7 +8,13 @@ data class ParsedPayment(
     val amountMinor: Long,
     val currency: String,
     val merchant: String?,
+    /** Останні 4 цифри картки, якщо є в тексті. */
+    val card: String? = null,
+    val sourceType: SourceType = SourceType.CARD,
 )
+
+/** Спосіб оплати. */
+enum class SourceType { NFC, CARD, ONLINE, MANUAL }
 
 /**
  * Розпізнає оплати з тексту сповіщень Samsung Wallet, Google Wallet і банківських додатків.
@@ -35,6 +41,19 @@ object PaymentParser {
         "ua.pravex.mobile" to "Правекс",
         "com.revolut.revolut" to "Revolut",
         "com.wise.android" to "Wise",
+        "pl.pkobp.iko" to "PKO BP",
+        "pl.mbank" to "mBank",
+        "pl.ing.mojeing" to "ING",
+        "pl.bzwbk.bzwbk24" to "Santander",
+        "eu.eleader.mobilebanking.pekao" to "Pekao",
+        "wit.android.bcpBankingApp.millenniumPL" to "Millennium",
+    )
+
+    /** Гаманці: оплата з них — завжди безконтактна (NFC). */
+    val WALLET_APPS = setOf(
+        "com.samsung.android.spay",
+        "com.samsung.android.samsungpay.gear",
+        "com.google.android.apps.walletnfcrel",
     )
 
     private val currencyAliases: List<Pair<String, String>> = listOf(
@@ -66,17 +85,29 @@ object PaymentParser {
         "оплат", "покуп", "списан", "сплач", "платіж", "витрат", "транзакц",
         "payment", "paid", "purchase", "spent", "charged", "transaction", "debit",
         "оплач", "покупк", "списание", "оплата",
+        "płatność", "platnosc", "zakup", "transakcja", "obciążenie", "zapłacono", "blik",
+    )
+
+    private val onlineKeywords = listOf(
+        "онлайн", "інтернет", "online", "internet", "e-commerce", "в мережі", "w internecie",
     )
 
     private val incomeKeywords = listOf(
         "зарахув", "надійш", "надходж", "поповн", "повернен", "відшкод", "кешбек", "cashback",
         "refund", "received", "top up", "top-up", "deposit", "отримано", "переказ від",
         "пополнен", "зачислен", "возврат",
+        "wpływ", "wplyw", "uznanie", "zwrot", "przelew przychodzący", "doładowanie",
     )
 
     private val balanceMarkers = listOf(
         "баланс", "залишок", "доступно", "ліміт", "balance", "available", "limit", "остаток",
+        "saldo", "dostępne", "dostepne", "бал.",
     )
+
+    // "5168**1234", "*1234", "•• 1234"
+    private val cardMaskRegex = Regex("[*•∙·]{1,6}\\s?(\\d{4})(?!\\d)")
+    // "Картка 1234", "card 1234", "karta: 1234"
+    private val cardWordRegex = Regex("(?:картк\\p{L}*|card|karta)\\s*[:№#]?\\s*(\\d{4})(?!\\d)", RegexOption.IGNORE_CASE)
 
     private val merchantRegexes = listOf(
         Regex("(?:merchant|магазин|продавець|отримувач)\\s*[:\\-]\\s*([^\\n,;]{2,40})", RegexOption.IGNORE_CASE),
@@ -103,10 +134,17 @@ object PaymentParser {
         // (наприклад, monobank: "Сільпо  −245.50₴").
         if (!hasKeyword && !(isKnownApp && match.negative)) return null
 
+        val sourceType = when {
+            packageName in WALLET_APPS -> SourceType.NFC
+            onlineKeywords.any { lower.contains(it) } -> SourceType.ONLINE
+            else -> SourceType.CARD
+        }
         return ParsedPayment(
             amountMinor = match.minor,
             currency = match.currency,
             merchant = extractMerchant(title, text, appLabel ?: KNOWN_PAYMENT_APPS[packageName]),
+            card = (cardMaskRegex.find(full) ?: cardWordRegex.find(full))?.groupValues?.get(1),
+            sourceType = sourceType,
         )
     }
 

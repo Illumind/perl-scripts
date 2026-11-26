@@ -2,13 +2,41 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.NFC" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-feature android:name="android.hardware.nfc" android:required="false" />
+
+    <!-- Android 11+: щоб бачити, які гаманці/банки встановлені (налаштування джерел). -->
+    <queries>
+        <package android:name="com.samsung.android.spay" />
+        <package android:name="com.samsung.android.samsungpay.gear" />
+        <package android:name="com.google.android.apps.walletnfcrel" />
+        <package android:name="com.ftband.mono" />
+        <package android:name="ua.privatbank.ap24" />
+        <package android:name="com.ideabank.izibank" />
+        <package android:name="ua.com.abank" />
+        <package android:name="ua.raiffeisen.myraif" />
+        <package android:name="com.pumb.mobile" />
+        <package android:name="ua.oschadbank.online" />
+        <package android:name="com.sensebank.mobile" />
+        <package android:name="ua.otpbank.android" />
+        <package android:name="com.ukrsibbank.client.android" />
+        <package android:name="ua.pravex.mobile" />
+        <package android:name="com.revolut.revolut" />
+        <package android:name="com.wise.android" />
+        <package android:name="pl.pkobp.iko" />
+        <package android:name="pl.mbank" />
+        <package android:name="pl.ing.mojeing" />
+        <package android:name="pl.bzwbk.bzwbk24" />
+        <package android:name="eu.eleader.mobilebanking.pekao" />
+        <package android:name="wit.android.bcpBankingApp.millenniumPL" />
+    </queries>
 
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:roundIcon="@drawable/ic_launcher"
         android:label="@string/app_name"
+        android:localeConfig="@xml/locales_config"
         android:supportsRtl="true"
         android:theme="@style/Theme.PurchaseTracker">
 
